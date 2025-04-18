@@ -1,7 +1,17 @@
-// routes/skillRoutes.js
 const express = require('express');
 const router = express.Router();
 const Skill = require('../models/skill');
+
+// POST - Create a new skill
+router.post('/skills', async (req, res) => {
+  try {
+    const skill = new Skill(req.body);
+    const savedSkill = await skill.save();
+    res.status(201).json(savedSkill);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 
 // Get all skills
 router.get('/skills', async (req, res) => {
