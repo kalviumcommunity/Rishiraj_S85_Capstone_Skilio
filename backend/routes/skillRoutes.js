@@ -22,11 +22,6 @@ router.put('/skills/:id', async (req, res) => {
       return res.status(404).json({ message: 'Skill not found' });
     }
     
-    // Optional: Check if user is authorized to update this skill
-    // if (skill.createdBy.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: 'Not authorized to update this skill' });
-    // }
-    
     const updatedSkill = await Skill.findByIdAndUpdate(
       req.params.id,
       req.body,
