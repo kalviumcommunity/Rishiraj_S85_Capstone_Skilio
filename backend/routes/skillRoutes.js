@@ -13,6 +13,32 @@ router.post('/skills', async (req, res) => {
   }
 });
 
+// PUT - Update a skill
+router.put('/skills/:id', async (req, res) => {
+  try {
+    const skill = await Skill.findById(req.params.id);
+    
+    if (!skill) {
+      return res.status(404).json({ message: 'Skill not found' });
+    }
+    
+    // Optional: Check if user is authorized to update this skill
+    // if (skill.createdBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: 'Not authorized to update this skill' });
+    // }
+    
+    const updatedSkill = await Skill.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('createdBy', 'name email');
+    
+    res.json(updatedSkill);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Get all skills
 router.get('/skills', async (req, res) => {
   try {
