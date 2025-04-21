@@ -24,6 +24,37 @@ router.post('/users', async (req, res) => {
   }
 });
 
+// PUT - Update a user
+router.put('/users/:id', async (req, res) => {
+  try {
+    // Check if trying to update email to one that already exists
+    if (req.body.email) {
+      const existingUser = await User.findOne({ 
+        email: req.body.email,
+        _id: { $ne: req.params.id } // Exclude current user from check
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Get all users
 router.get('/users', async (req, res) => {
   try {
