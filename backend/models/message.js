@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const messageSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User',   // reference
     required: true
   },
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User',  // reference
     required: true
   },
   content: {
@@ -21,7 +21,7 @@ const messageSchema = new mongoose.Schema({
   },
   exchangeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Exchange'
+    ref: 'Exchange'   // reference
   },
   attachments: [{
     type: String 

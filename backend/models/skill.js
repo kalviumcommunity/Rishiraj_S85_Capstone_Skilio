@@ -16,7 +16,7 @@ const skillSchema = new mongoose.Schema({
   media_url: String,
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User',    // reference
   }
 }, { timestamps: true });
 

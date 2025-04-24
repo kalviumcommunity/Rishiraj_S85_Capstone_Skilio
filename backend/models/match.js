@@ -3,27 +3,27 @@ const mongoose = require('mongoose');
 const matchSchema = new mongoose.Schema({
   users: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User',  // reference
     required: true
   }],
   skillOffered: {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User'  // reference
     },
     skill: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Skill'
+      ref: 'Skill'   // reference
     }
   },
   skillWanted: {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User'  // reference
     },
     skill: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Skill'
+      ref: 'Skill'  // reference
     }
   },
   matchScore: {
@@ -37,7 +37,7 @@ const matchSchema = new mongoose.Schema({
   },
   initiatedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User'  // reference
   },
   notes: String
 }, { timestamps: true });

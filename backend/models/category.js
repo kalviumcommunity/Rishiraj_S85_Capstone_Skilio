@@ -9,7 +9,7 @@ const categorySchema = new mongoose.Schema({
   description: String,
   parentCategory: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
+    ref: 'Category',   // reference
     default: null
   },
   icon: String,
