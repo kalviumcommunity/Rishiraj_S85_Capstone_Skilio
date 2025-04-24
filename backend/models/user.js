@@ -16,8 +16,12 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     bio: String,
-    skillsOffered: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }], // reference
-    skillsWanted: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }],  // reference
+    skillsOffered: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Skill", required: true },
+    ],
+    skillsWanted: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Skill", required: true },
+    ], // reference
     profileImage: String,
   },
   { timestamps: true }
