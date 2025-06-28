@@ -23,7 +23,7 @@ router.post('/users', async (req, res) => {
     const userResponse = savedUser.toObject();
     delete userResponse.password;
     
-    res.status(201).json(userResponse);
+    res.status(201).json({ message: 'User created', user: userResponse });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -56,10 +56,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// (Optional) Public test route
-router.get('/test-public', (req, res) => {
-  res.json({ message: 'This is a public route' });
-});
 
 // Protect all routes below this line
 router.use(auth);

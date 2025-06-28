@@ -39,9 +39,7 @@ export default function Login() {
     event.preventDefault();
     setError('');
     setLoading(true);
-    // TODO: Replace with your backend API call
     try {
-      // Example fetch (update URL as needed)
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,9 +47,8 @@ export default function Login() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
-      // Save token, redirect, etc.
       localStorage.setItem('token', data.token);
-      window.location.href = '/'; // Redirect to dashboard/home
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message);
     } finally {

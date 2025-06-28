@@ -23,8 +23,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/skill-exc
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-app.use('/api', skillRoutes);
 app.use('/api', userRoutes);
+app.use('/api', skillRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', matchRoutes);
