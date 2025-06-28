@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Match = require('../models/match');
+const auth = require('../middleware/authMiddleware');
+
+// (Optional) Public routes here
+
+// Protect all routes below this line
+router.use(auth);
 
 // GET - Get all matches (with optional filtering)
 router.get('/matches', async (req, res) => {
