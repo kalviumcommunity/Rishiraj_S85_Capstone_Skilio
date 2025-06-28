@@ -42,7 +42,6 @@ export default function Signup() {
     setError('');
     setSuccess('');
     setLoading(true);
-    // TODO: Replace with your backend API call
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
@@ -51,8 +50,11 @@ export default function Signup() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Signup failed');
-      setSuccess('Account created! You can now log in.');
+      setSuccess('Account created! Redirecting...');
       setName(''); setEmail(''); setPassword('');
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1200);
     } catch (err) {
       setError(err.message);
     } finally {
