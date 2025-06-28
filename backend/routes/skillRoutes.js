@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Skill = require('../models/skill');
+const auth = require('../middleware/authMiddleware');
+
+// (Optional) Public routes here
+
+// Protect all routes below this line
+router.use(auth);
 
 // POST - Create a new skill
 router.post('/skills', async (req, res) => {

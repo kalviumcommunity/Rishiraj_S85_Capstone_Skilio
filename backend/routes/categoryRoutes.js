@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/category');
+const auth = require('../middleware/authMiddleware');
 
 // GET - Get all categories
 router.get('/categories', async (req, res) => {
@@ -118,5 +119,8 @@ router.put('/categories/:id', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+// Protect all routes below this line
+router.use(auth);
 
 module.exports = router;
