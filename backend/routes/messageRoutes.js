@@ -2,6 +2,14 @@
 const express = require('express');
 const router = express.Router();
 const Message = require('../models/message');
+const auth = require('../middleware/authMiddleware');
+
+// (Optional) Public routes here
+
+// Protect all routes below this line
+router.use(auth);
+
+// All protected routes below
 
 // GET - Get all messages (with optional filtering)
 router.get('/messages', async (req, res) => {

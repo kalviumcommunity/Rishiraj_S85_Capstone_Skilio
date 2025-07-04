@@ -1,8 +1,17 @@
 const express = require('express');
 const Skill = require('../models/skill');
+<<<<<<< HEAD
 const User = require('../models/user');
 const { auth } = require('./authRoutes');
 const router = express.Router();
+=======
+const auth = require('../middleware/authMiddleware');
+
+// (Optional) Public routes here
+
+// Protect all routes below this line
+router.use(auth);
+>>>>>>> 543cf142b4157f9347685087f2e47f9559f7fc60
 
 // Get all skills with filters
 router.get('/', async (req, res) => {

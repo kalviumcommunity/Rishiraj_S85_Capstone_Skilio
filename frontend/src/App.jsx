@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AuthProvider from "./context/AuthContext"; // Changed from { AuthProvider } to AuthProvider
@@ -29,3 +30,4 @@ function App() {
 }
 
 export default App;
+
