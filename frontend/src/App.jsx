@@ -1,21 +1,33 @@
-// App.jsx
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthProvider from "./context/AuthContext"; // Changed from { AuthProvider } to AuthProvider
+import Navbar from './components/Navbar';
+import HeroSection from './components/HeroSection';
+import Home from './pages/Home';
+import Explore from './pages/Explore';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Navigate to="/login" />} />
-        {/* Add your main/dashboard route here */}
-        {/* <Route path="/" element={<Home />} /> */}
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-white">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
 export default App;
+

@@ -1,144 +1,146 @@
-import React, { useState } from 'react';
-import { Button, TextField, Link, Grid, Box, Typography, Container, Alert } from '@mui/material';
-import logo from '../assets/skilio_final.png';
-import handshakeBg from '../assets/handshake-background.png';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [remember, setRemember] = useState(false);
 
-  const glassFieldSx = {
-    background: 'rgba(255,255,255,0.25)',
-    borderRadius: 2,
-    border: '1px solid rgba(255,255,255,0.4)',
-    boxShadow: '0 4px 30px rgba(0,0,0,0.05)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    input: { color: '#181C2F', fontWeight: 500 },
-    '& .MuiInputBase-input': { color: '#181C2F', fontWeight: 500 },
-    '& .MuiInputLabel-root': { color: '#26425A', fontWeight: 500 },
-    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-  };
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const glassCardSx = {
-    boxShadow: '0 8px 40px 0 rgba(40,40,80,0.18)',
-    borderRadius: 5,
-    bgcolor: 'rgba(255,255,255,0.25)',
-    border: '1.5px solid rgba(255,255,255,0.4)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    py: 4,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
     setError('');
-    setLoading(true);
+  };
+
+  const handleCheckbox = (e) => {
+    setRemember(e.target.checked);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed');
-      localStorage.setItem('token', data.token);
-      window.location.href = '/dashboard';
+      const result = await login(formData.email, formData.password);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Invalid email or password');
+      }
     } catch (err) {
-      setError(err.message);
+      setError('An error occurred. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(180deg, #181C2F 0%, #26425A 10%, #86A8CF 35%, #E1CBD7 60%, #C38EB4 85%, #181C2F 100%)',
-        overflow: 'hidden',
-      }}
-    >
-      <img
-        src={handshakeBg}
-        alt="Handshake"
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          opacity: 0.13,
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-      <Container
-        maxWidth="xs"
-        sx={{ ...glassCardSx, zIndex: 1 }}
-      >
-        <img src={logo} alt="Skilio Logo" style={{ width: 110, height: 110, marginBottom: 16, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
-        <Typography component="h1" variant="h5" sx={{ mt: 1, mb: 2, fontWeight: 600, color: '#fff' }}>
-          Sign in
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={glassFieldSx}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={glassFieldSx}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={loading}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-          <Grid container justifyContent="flex-end">
-            <Grid item>
-              <Link href="/signup" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </Box>
-      </Container>
-    </Box>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-[#f3f6fd] py-12 px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center space-x-2">
+            <span className="text-2xl font-extrabold text-blue-600">Skilio</span>
+          </Link>
+        </div>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+          <div>
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
+              Email Address
+            </label>
+            <div className="mt-1 relative">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full py-3 pl-12 pr-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 text-base shadow-sm transition-all bg-[#f6f9ff]"
+                placeholder="Enter your email"
+              />
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-300 w-5 h-5" />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">
+              Password
+            </label>
+            <div className="mt-1 relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={formData.password}
+                onChange={handleInputChange}
+                className="w-full py-3 pl-12 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 text-base shadow-sm transition-all bg-[#f6f9ff]"
+                placeholder="Enter your password"
+              />
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-300 w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center mb-2">
+            <input
+              id="remember"
+              name="remember"
+              type="checkbox"
+              checked={remember}
+              onChange={handleCheckbox}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
+              Remember me
+            </label>
+          </div>
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 rounded-xl bg-white border-2 border-blue-600 text-blue-600 font-bold text-lg shadow-sm hover:bg-blue-600 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Signing in...' : 'Login'}
+            </button>
+          </div>
+        </form>
+        <div className="mt-6 text-center">
+          <span className="text-sm text-gray-600">Don't have an account? </span>
+          <Link to="/register" className="font-bold text-blue-600 hover:text-blue-800 transition-colors">Register</Link>
+        </div>
+      </div>
+    </div>
   );
-} 
+};
+
+export default Login;
