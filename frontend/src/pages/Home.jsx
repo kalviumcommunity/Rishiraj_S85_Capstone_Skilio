@@ -5,7 +5,10 @@ import HeroSection from '../components/HeroSection';
 import { mockSkills, categories } from '../data/mockData';
 
 const Home = () => {
-  const featuredSkills = mockSkills.slice(0, 3);
+  // Add safety checks for undefined data
+  const safeSkills = mockSkills || [];
+  const safeCategories = categories || [];
+  const featuredSkills = safeSkills.slice(0, 3);
 
   const features = [
     {
@@ -78,7 +81,7 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {categories.map((category) => (
+            {safeCategories.map((category) => (
               <Link
                 key={category.id}
                 to={`/categories/${category.name.toLowerCase().replace(' ', '-')}`}
@@ -90,7 +93,7 @@ const Home = () => {
                     {category.name}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {category.subcategories.length} subcategories
+                    {(category.subcategories || []).length} subcategories
                   </p>
                 </div>
               </Link>

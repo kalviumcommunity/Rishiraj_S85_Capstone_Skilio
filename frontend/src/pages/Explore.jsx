@@ -28,7 +28,7 @@ const Explore = () => {
         if (!matchesSearch) return false;
       }
 
-      // Category filter
+      
       if (filters.category && skill.category !== filters.category) {
         return false;
       }

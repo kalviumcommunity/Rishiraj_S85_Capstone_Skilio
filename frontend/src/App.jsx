@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from "./context/AuthContext";
+import AuthProvider from "./context/AuthContext"; // Changed from { AuthProvider } to AuthProvider
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import Home from './pages/Home';
