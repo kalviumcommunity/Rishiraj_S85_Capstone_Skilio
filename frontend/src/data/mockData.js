@@ -176,3 +176,27 @@ export const mockUsers = [
     totalSessions: 203
   }
 ];
+
+export const mockReviews = [
+  {
+    id: '1',
+    userId: 'user1',
+    reviewerName: 'Jane Doe',
+    comment: 'Great skill exchange! Very professional and helpful.',
+    date: '2024-07-01'
+  },
+  {
+    id: '2',
+    userId: 'user1',
+    reviewerName: 'John Smith',
+    comment: 'Very knowledgeable and friendly. Highly recommend!',
+    date: '2024-06-28'
+  },
+  {
+    id: '3',
+    userId: 'user2',
+    reviewerName: 'Alice Brown',
+    comment: 'Excellent communication and skills.',
+    date: '2024-06-20'
+  }
+];

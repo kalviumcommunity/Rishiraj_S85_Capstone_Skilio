@@ -9,7 +9,6 @@ const router = express.Router();
 // Protect all routes below this line
 router.use(auth);
 
-
 // Get all skills with filters
 router.get('/', async (req, res) => {
   try {
@@ -92,6 +91,50 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Error fetching skills:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get skill suggestions (AI-powered) - moved before /:id to avoid conflicts
+router.get('/suggestions/:userId', async (req, res) => {
+  try {
+    // This would integrate with OpenAI API for personalized suggestions
+    // For now, return skills from similar users
+    const user = await User.findById(req.params.userId);
+    
+    const suggestions = await Skill.find({
+      createdBy: { $ne: req.params.userId },
+      category: { $in: user.interests || [] }
+    })
+    .populate('createdBy', 'name profileImage rating')
+    .limit(6);
+
+    res.json({ success: true, suggestions });
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user's skills - moved before /:id to avoid conflicts
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const { type = 'all' } = req.query;
+    let query = { createdBy: req.params.userId };
+
+    if (type === 'offering') {
+      query.isOffering = true;
+    } else if (type === 'seeking') {
+      query.isOffering = false;
+    }
+
+    const skills = await Skill.find(query)
+      .populate('createdBy', 'name profileImage');
+
+    res.json({ success: true, skills });
+  } catch (error) {
+    console.error('Error fetching user skills:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -108,12 +151,13 @@ router.get('/:id', async (req, res) => {
 
     res.json({ success: true, skill });
   } catch (error) {
+    console.error('Error fetching skill:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Create new skill
-router.post('/', auth, async (req, res) => {
+// Create new skill - removed duplicate auth middleware
+router.post('/', async (req, res) => {
   try {
     const {
       title,
@@ -160,12 +204,13 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json({ success: true, skill: populatedSkill });
   } catch (error) {
+    console.error('Error creating skill:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Update skill
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id);
 
@@ -186,12 +231,13 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json({ success: true, skill: updatedSkill });
   } catch (error) {
+    console.error('Error updating skill:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Delete skill
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id);
 
@@ -219,47 +265,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ success: true, message: 'Skill deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get user's skills
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const { type = 'all' } = req.query;
-    let query = { createdBy: req.params.userId };
-
-    if (type === 'offering') {
-      query.isOffering = true;
-    } else if (type === 'seeking') {
-      query.isOffering = false;
-    }
-
-    const skills = await Skill.find(query)
-      .populate('createdBy', 'name profileImage');
-
-    res.json({ success: true, skills });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get skill suggestions (AI-powered)
-router.get('/suggestions/:userId', auth, async (req, res) => {
-  try {
-    // This would integrate with OpenAI API for personalized suggestions
-    // For now, return skills from similar users
-    const user = await User.findById(req.params.userId);
-    
-    const suggestions = await Skill.find({
-      createdBy: { $ne: req.params.userId },
-      category: { $in: user.interests || [] }
-    })
-    .populate('createdBy', 'name profileImage rating')
-    .limit(6);
-
-    res.json({ success: true, suggestions });
-  } catch (error) {
+    console.error('Error deleting skill:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

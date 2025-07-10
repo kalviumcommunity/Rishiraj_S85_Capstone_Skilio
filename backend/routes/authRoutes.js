@@ -100,15 +100,26 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   async (req, res) => {
     try {
-      const token = jwt.sign(
-        { userId: req.user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      // Redirect to frontend with token
+      console.log('Google user:', req.user); // Already present
+      if (!req.user) {
+        console.error('No user found after Google authentication');
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_user`);
+      }
+      let token;
+      try {
+        token = jwt.sign(
+          { userId: req.user._id },
+          process.env.JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+      } catch (jwtError) {
+        console.error('JWT signing error:', jwtError);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=jwt_failed`);
+      }
+      console.log('JWT token created:', token);
       res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
     } catch (error) {
+      console.error('OAuth error:', error);
       res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
     }
   }
@@ -148,4 +159,5 @@ router.get('/me', auth, async (req, res) => {
   });
 });
 
-module.exports = { router, auth }; 
+// Export only the router - this is the key fix!
+module.exports = router;
