@@ -239,6 +239,20 @@ const Register = () => {
               <span className="px-2 bg-white text-gray-400">Or continue with</span>
             </div>
           </div>
+          <div className="mt-4 flex justify-center">
+            <a
+              href="http://localhost:5000/api/auth/google"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm bg-white text-gray-700 hover:bg-gray-100 transition"
+              style={{ textDecoration: 'none' }}
+            >
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="Google"
+                className="w-5 h-5 mr-2"
+              />
+              Sign up with Google
+            </a>
+          </div>
         </div>
       </div>
     </div>
