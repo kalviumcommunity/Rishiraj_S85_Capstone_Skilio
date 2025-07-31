@@ -59,8 +59,10 @@ const Register = () => {
       const userData = {
         name: formData.name,
         email: formData.email,
+        password: formData.password, // Added password field
         phone: formData.phone
       };
+      console.log('Registering with:', userData); // Debug log
       const result = await register(userData);
       if (result.success) {
         navigate('/dashboard');

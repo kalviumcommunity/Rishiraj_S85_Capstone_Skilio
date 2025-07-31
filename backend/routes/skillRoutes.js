@@ -159,6 +159,7 @@ router.get('/:id', async (req, res) => {
 // Create new skill - removed duplicate auth middleware
 router.post('/', async (req, res) => {
   try {
+    console.log('Creating skill with user:', req.user); // Debug log
     const {
       title,
       description,
@@ -172,6 +173,14 @@ router.post('/', async (req, res) => {
       requirements
     } = req.body;
 
+    // Format mediaUrls to match schema
+    const formattedMediaUrls = (mediaUrls || []).map(url => {
+      if (typeof url === 'string') {
+        return { url, type: 'image' };
+      }
+      return url;
+    });
+
     const skill = new Skill({
       title,
       description,
@@ -179,22 +188,22 @@ router.post('/', async (req, res) => {
       level,
       location,
       tags: tags || [],
-      mediaUrls: mediaUrls || [],
+      mediaUrls: formattedMediaUrls,
       isOffering,
       availability,
       requirements,
-      createdBy: req.user._id
+      createdBy: req.user.userId
     });
 
     await skill.save();
 
     // Update user's skills array
     if (isOffering) {
-      await User.findByIdAndUpdate(req.user._id, {
+      await User.findByIdAndUpdate(req.user.userId, {
         $push: { skillsOffered: skill._id }
       });
     } else {
-      await User.findByIdAndUpdate(req.user._id, {
+      await User.findByIdAndUpdate(req.user.userId, {
         $push: { skillsWanted: skill._id }
       });
     }

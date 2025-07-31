@@ -2,13 +2,46 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Star, Zap, Shield, Search, TrendingUp } from 'lucide-react';
 import SkillCard from '../components/SkillCard';
 import HeroSection from '../components/HeroSection';
-import { mockSkills, categories } from '../data/mockData';
+import { categories } from '../data/mockData';
+import { useEffect, useState } from 'react';
 
 const Home = () => {
-  // Add safety checks for undefined data
-  const safeSkills = mockSkills || [];
   const safeCategories = categories || [];
-  const featuredSkills = safeSkills.slice(0, 3);
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills?limit=12`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+          }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setSkills(data.skills);
+        } else {
+          setError(data.error || 'Failed to fetch skills');
+        }
+      } catch (err) {
+        setError('Failed to fetch skills');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSkills();
+  }, []);
+
+  const featuredSkills = skills.slice(0, 3);
 
   const features = [
     {
@@ -51,9 +84,17 @@ const Home = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {featuredSkills.map((skill) => (
-              <SkillCard key={skill.id} skill={skill} />
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center py-8">Loading featured skills...</div>
+            ) : error ? (
+              <div className="col-span-full text-center text-red-500 py-8">{error}</div>
+            ) : featuredSkills.length === 0 ? (
+              <div className="col-span-full text-center py-8">No skills found.</div>
+            ) : (
+              featuredSkills.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))
+            )}
           </div>
 
           <div className="text-center">

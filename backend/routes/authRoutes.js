@@ -9,7 +9,7 @@ const router = express.Router();
 // JWT Authentication Routes
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, bio } = req.body;
+    const { name, email, password, bio = "" } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -49,6 +49,7 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
