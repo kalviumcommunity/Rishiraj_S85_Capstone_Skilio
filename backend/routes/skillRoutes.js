@@ -4,7 +4,109 @@ const User = require('../models/user');
 const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// (Optional) Public routes here
+// Public route for fetching skills (no authentication required)
+router.get('/public', async (req, res) => {
+  try {
+    const {
+      search,
+      category,
+      level,
+      location,
+      skillType,
+      sortBy = 'newest',
+      page = 1,
+      limit = 12
+    } = req.query;
+
+    let query = {};
+
+    // Search filter
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
+    }
+
+    // Category filter
+    if (category) {
+      query.category = category;
+    }
+
+    // Level filter
+    if (level) {
+      query.level = level;
+    }
+
+    // Location filter
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
+    }
+
+    // Skill type filter (offering/seeking)
+    if (skillType && skillType !== 'all') {
+      query.isOffering = skillType === 'offering';
+    }
+
+    // Pagination
+    const skip = (page - 1) * limit;
+
+    // Build sort object
+    let sort = {};
+    switch (sortBy) {
+      case 'newest':
+        sort.createdAt = -1;
+        break;
+      case 'rating':
+        sort.rating = -1;
+        break;
+      case 'reviews':
+        sort.reviewCount = -1;
+        break;
+      default:
+        sort.createdAt = -1;
+    }
+
+    const skills = await Skill.find(query)
+      .populate('createdBy', 'name profileImage rating')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Skill.countDocuments(query);
+
+    res.json({
+      success: true,
+      skills,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        hasMore: page * limit < total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching skills:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Public route for fetching individual skill (no authentication required)
+router.get('/public/:id', async (req, res) => {
+  try {
+    const skill = await Skill.findById(req.params.id)
+      .populate('createdBy', 'name profileImage bio rating reviewCount');
+
+    if (!skill) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+
+    res.json({ success: true, skill });
+  } catch (error) {
+    console.error('Error fetching skill:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 // Protect all routes below this line
 router.use(auth);

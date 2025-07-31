@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Star, Zap, Shield, Search, TrendingUp } from 'lucide-react';
+import { ArrowRight, Users, Star, Zap, Shield, Search, TrendingUp, Plus, BookOpen, MessageCircle } from 'lucide-react';
 import SkillCard from '../components/SkillCard';
 import HeroSection from '../components/HeroSection';
 import { categories } from '../data/mockData';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const safeCategories = categories || [];
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -17,14 +19,21 @@ const Home = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        // Use different endpoints based on authentication status
+        const endpoint = isAuthenticated ? '/api/skills' : '/api/skills/public';
+        
+        // Only add Authorization header if user is logged in
+        if (token && isAuthenticated) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills?limit=12`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            }
-          }
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${endpoint}?limit=12`,
+          { headers }
         );
         const data = await response.json();
         if (data.success) {
@@ -39,7 +48,7 @@ const Home = () => {
       }
     };
     fetchSkills();
-  }, []);
+  }, [isAuthenticated]);
 
   const featuredSkills = skills.slice(0, 3);
 
@@ -66,7 +75,138 @@ const Home = () => {
     }
   ];
 
-  return (
+  // Personalized content for logged-in users
+  const LoggedInContent = () => (
+    <div className="min-h-screen">
+      {/* Welcome Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Welcome back, {user?.name || 'there'}! 👋
+          </h1>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Ready to continue your skill journey? Explore new opportunities or share your expertise.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/post-skill"
+              className="inline-flex items-center space-x-2 bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Post a Skill</span>
+            </Link>
+            <Link
+              to="/explore"
+              className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+              <span>Explore Skills</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+            Quick Actions
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link
+              to="/dashboard"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    My Dashboard
+                  </h3>
+                  <p className="text-gray-600 text-sm">View your skills and activity</p>
+                </div>
+              </div>
+            </Link>
+            <Link
+              to="/chat"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    Messages
+                  </h3>
+                  <p className="text-gray-600 text-sm">Check your conversations</p>
+                </div>
+              </div>
+            </Link>
+            <Link
+              to="/profile"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    My Profile
+                  </h3>
+                  <p className="text-gray-600 text-sm">Update your profile</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Skills */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Featured Skills
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover amazing skills shared by our community members
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {loading ? (
+              <div className="col-span-full text-center py-8">Loading featured skills...</div>
+            ) : error ? (
+              <div className="col-span-full text-center text-red-500 py-8">{error}</div>
+            ) : featuredSkills.length === 0 ? (
+              <div className="col-span-full text-center py-8">No skills found.</div>
+            ) : (
+              featuredSkills.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))
+            )}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/explore"
+              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              <span>View All Skills</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+
+  // Generic content for non-logged-in users
+  const LoggedOutContent = () => (
     <div className="min-h-screen">
       {/* Hero Section */}
       <HeroSection />
@@ -195,6 +335,8 @@ const Home = () => {
       </section>
     </div>
   );
+
+  return isAuthenticated ? <LoggedInContent /> : <LoggedOutContent />;
 };
 
 export default Home;
