@@ -35,7 +35,7 @@ const PostSkill = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/upload/skill-images`,
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/upload/skill-images`,
         {
           method: 'POST',
           headers: {
@@ -91,7 +91,7 @@ const PostSkill = () => {
       };
 
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/skills`,
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills`,
         {
           method: 'POST',
           headers: {

@@ -22,47 +22,54 @@ export const AuthProvider = ({ children }) => { // Changed to named export
     }
     setIsLoading(false);
   }, []);
-
   const login = async (email, password) => {
-    // Simulate login API call
     setIsLoading(true);
     try {
-      // Mock successful login
-      const mockUser = {
-        id: 1,
-        name: "Alex Johnson",
-        email: email,
-        avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-        location: "San Francisco, CA",
-        verified: true,
-        skillsOffered: ["Web Development", "React", "Node.js"],
-        skillsWanted: ["UI/UX Design", "Mobile Development"]
-      };
-      
-      localStorage.setItem('skilioUser', JSON.stringify(mockUser));
-      setUser(mockUser);
-      return { success: true };
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        }
+      );
+      const data = await response.json();
+      if (response.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('skilioUser', JSON.stringify(data.user));
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Login failed' };
+      }
     } catch (error) {
       return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const register = async (userData) => {
     setIsLoading(true);
     try {
-      // Mock successful registration
-      const newUser = {
-        id: Date.now(),
-        ...userData,
-        avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-        verified: false
-      };
-      
-      localStorage.setItem('skilioUser', JSON.stringify(newUser));
-      setUser(newUser);
-      return { success: true };
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/auth/register`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        }
+      );
+      const data = await response.json();
+      if (response.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('skilioUser', JSON.stringify(data.user));
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
     } catch (error) {
       return { success: false, error: error.message };
     } finally {
@@ -72,6 +79,7 @@ export const AuthProvider = ({ children }) => { // Changed to named export
 
   const logout = () => {
     localStorage.removeItem('skilioUser');
+    localStorage.removeItem('token');
     setUser(null);
   };
 
