@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, User, ArrowLeft, MessageCircle, Share2, MapPin, Clock, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const SkillDetail = () => {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     const fetchSkill = async () => {
@@ -49,6 +52,62 @@ const SkillDetail = () => {
       fetchSkill();
     }
   }, [id, isAuthenticated]);
+
+  const startChat = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to start a conversation');
+      navigate('/login');
+      return;
+    }
+
+    if (skill.createdBy._id === user.id) {
+      toast.error('You cannot start a chat with yourself');
+      return;
+    }
+
+    setStartingChat(true);
+    try {
+      // Create an initial message to start the conversation
+      const messageData = {
+        recipient: skill.createdBy._id,
+        content: `Hi! I'm interested in your skill "${skill.title}". Can we discuss this further?`,
+        exchangeId: skill._id // Link the message to this skill
+      };
+
+      console.log('Sending message data:', messageData); // Debug log
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(messageData)
+        }
+      );
+
+      console.log('Response status:', response.status); // Debug log
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Success response:', result); // Debug log
+        toast.success('Chat started! Redirecting to messages...');
+        // Navigate to the new chat interface with the recipient
+        navigate(`/chat?recipient=${skill.createdBy._id}`);
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData); // Debug log
+        toast.error(errorData.message || 'Failed to start chat');
+      }
+    } catch (err) {
+      console.error('Network error:', err); // Debug log
+      toast.error('Failed to start chat');
+    } finally {
+      setStartingChat(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -153,13 +212,27 @@ const SkillDetail = () => {
               </div>
               <div className="flex gap-3 mt-4">
                 {isAuthenticated ? (
-                  <button className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition">
-                    <MessageCircle className="w-4 h-4" />
-                    Message
-                  </button>
+                  skill.createdBy._id === user.id ? (
+                    <button 
+                      disabled
+                      className="bg-gray-300 text-gray-500 px-5 py-2 rounded-lg font-medium flex items-center gap-2 cursor-not-allowed"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Your Own Skill
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={startChat}
+                      disabled={startingChat}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition disabled:opacity-50 shadow-sm"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      {startingChat ? 'Starting Chat...' : 'Start Chat'}
+                    </button>
+                  )
                 ) : (
-                  <Link to="/login" className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-lg font-medium flex items-center gap-2 transition">
-                    <BookOpen className="w-4 h-4" />
+                  <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm">
+                    <BookOpen className="w-5 h-5" />
                     Login to Connect
                   </Link>
                 )}

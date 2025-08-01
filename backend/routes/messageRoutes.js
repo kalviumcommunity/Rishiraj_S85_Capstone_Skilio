@@ -62,8 +62,8 @@ router.get('/', async (req, res) => {
     
     // Only show messages where current user is sender or recipient
     filter.$or = [
-      { sender: req.user._id },
-      { recipient: req.user._id }
+      { sender: req.user.userId },
+      { recipient: req.user.userId }
     ];
     
     const messages = await Message.find(filter)
@@ -93,8 +93,8 @@ router.get('/:id', async (req, res) => {
     }
     
     // Check if current user is sender or recipient
-    if (message.sender._id.toString() !== req.user._id.toString() && 
-        message.recipient._id.toString() !== req.user._id.toString()) {
+    if (message.sender._id.toString() !== req.user.userId.toString() && 
+        message.recipient._id.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ message: 'Not authorized to view this message' });
     }
     
@@ -118,7 +118,7 @@ router.post('/', async (req, res) => {
     }
     
     const message = new Message({
-      sender: req.user._id,
+      sender: req.user.userId,
       recipient,
       content,
       exchangeId
@@ -150,7 +150,7 @@ router.put('/:id', async (req, res) => {
     }
     
     // Check if current user is the recipient (only recipients can mark as read)
-    if (message.recipient.toString() !== req.user._id.toString()) {
+    if (message.recipient.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this message' });
     }
     
@@ -182,7 +182,7 @@ router.delete('/:id', async (req, res) => {
     }
     
     // Check if current user is the sender (only senders can delete)
-    if (message.sender.toString() !== req.user._id.toString()) {
+    if (message.sender.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ message: 'Not authorized to delete this message' });
     }
     
@@ -210,7 +210,7 @@ router.put('/mark-read/bulk', async (req, res) => {
     const result = await Message.updateMany(
       { 
         _id: { $in: messageIds },
-        recipient: req.user._id 
+        recipient: req.user.userId 
       },
       { read: true }
     );

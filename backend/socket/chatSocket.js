@@ -43,6 +43,15 @@ function initializeSocket(server) {
       try {
         const { recipientId, content, exchangeId } = data;
         
+        console.log(`Message from ${socket.user.name} to ${recipientId}: ${content}`);
+        
+        // Validate recipient exists
+        const recipient = await User.findById(recipientId);
+        if (!recipient) {
+          socket.emit('message_error', { error: 'Recipient not found' });
+          return;
+        }
+        
         const message = new Message({
           sender: socket.user._id,
           recipient: recipientId,
@@ -55,19 +64,25 @@ function initializeSocket(server) {
           .populate('sender', 'name profileImage')
           .populate('recipient', 'name profileImage');
 
-        // Send to recipient
+        console.log('Message saved and populated:', populatedMessage);
+
+        // Send to recipient's room
         io.to(recipientId).emit('receive_message', populatedMessage);
         
-        // Send back to sender for confirmation
+        // Send back to sender for confirmation (same event name for consistency)
         socket.emit('message_sent', populatedMessage);
         
+        console.log(`Message delivered to recipient ${recipientId} and confirmed to sender ${socket.user._id}`);
+        
       } catch (error) {
+        console.error('Error handling send_message:', error);
         socket.emit('message_error', { error: error.message });
       }
     });
 
     // Handle typing indicators
     socket.on('typing_start', (data) => {
+      console.log(`${socket.user.name} started typing to ${data.recipientId}`);
       socket.to(data.recipientId).emit('user_typing', {
         userId: socket.user._id,
         name: socket.user.name
@@ -75,6 +90,7 @@ function initializeSocket(server) {
     });
 
     socket.on('typing_stop', (data) => {
+      console.log(`${socket.user.name} stopped typing to ${data.recipientId}`);
       socket.to(data.recipientId).emit('user_stop_typing', {
         userId: socket.user._id
       });
@@ -83,7 +99,7 @@ function initializeSocket(server) {
     // Handle read receipts
     socket.on('mark_read', async (data) => {
       try {
-        await Message.updateMany(
+        const updatedMessages = await Message.updateMany(
           { 
             sender: data.senderId, 
             recipient: socket.user._id,
@@ -91,6 +107,8 @@ function initializeSocket(server) {
           },
           { read: true }
         );
+        
+        console.log(`Marked ${updatedMessages.modifiedCount} messages as read`);
         
         io.to(data.senderId).emit('messages_read', {
           readerId: socket.user._id
@@ -100,12 +118,43 @@ function initializeSocket(server) {
       }
     });
 
+    // Handle user joining a conversation room (optional for group chats later)
+    socket.on('join_conversation', (conversationId) => {
+      socket.join(`conversation_${conversationId}`);
+      console.log(`${socket.user.name} joined conversation ${conversationId}`);
+    });
+
+    // Handle user leaving a conversation room
+    socket.on('leave_conversation', (conversationId) => {
+      socket.leave(`conversation_${conversationId}`);
+      console.log(`${socket.user.name} left conversation ${conversationId}`);
+    });
+
+    // Handle user going online/offline
+    socket.on('user_online', () => {
+      socket.broadcast.emit('user_status_change', {
+        userId: socket.user._id,
+        status: 'online'
+      });
+    });
+
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.user.name}`);
+      
+      // Broadcast user offline status
+      socket.broadcast.emit('user_status_change', {
+        userId: socket.user._id,
+        status: 'offline'
+      });
+    });
+
+    // Error handling
+    socket.on('error', (error) => {
+      console.error(`Socket error for user ${socket.user.name}:`, error);
     });
   });
 
   return io;
 }
 
-module.exports = initializeSocket; 
+module.exports = initializeSocket;
