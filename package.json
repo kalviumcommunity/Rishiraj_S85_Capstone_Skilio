@@ -1,4 +1,13 @@
 {
+  "name": "skilio",
+  "version": "1.0.0",
+  "description": "Skilio - A Skill Barter Platform",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install"
+  },
   "dependencies": {
     "cloudinary": "^2.7.0",
     "express-session": "^1.18.1",
