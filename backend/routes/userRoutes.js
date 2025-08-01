@@ -61,7 +61,7 @@ router.post('/login', async (req, res) => {
 router.use(auth);
 
 // PUT - Update a user
-router.put('/users/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     // Check if trying to update email to one that already exists
     if (req.body.email) {
@@ -92,7 +92,7 @@ router.put('/users/:id', async (req, res) => {
 });
 
 // Get all users
-router.get('/users', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const users = await User.find().select('-password');
     res.json(users);
@@ -101,25 +101,27 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Get a single user by ID
-router.get('/users/:id', async (req, res) => {
+// GET - Get a single user by ID
+router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-      .select('-password')
-      .populate('skillsOffered')
-      .populate('skillsWanted');
-      
+    const user = await User.findById(req.params.id).select('-password');
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user);
+    
+    res.json({
+      success: true,
+      user
+    });
   } catch (error) {
+    console.error('Error fetching user:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
 // Get users by skill offered
-router.get('/users/skills-offered/:skillId', async (req, res) => {
+router.get('/skills-offered/:skillId', async (req, res) => {
   try {
     const users = await User.find({ skillsOffered: req.params.skillId })
       .select('-password')
@@ -131,7 +133,7 @@ router.get('/users/skills-offered/:skillId', async (req, res) => {
 });
 
 // Get users by skill wanted
-router.get('/users/skills-wanted/:skillId', async (req, res) => {
+router.get('/skills-wanted/:skillId', async (req, res) => {
   try {
     const users = await User.find({ skillsWanted: req.params.skillId })
       .select('-password')
