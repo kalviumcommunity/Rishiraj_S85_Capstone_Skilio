@@ -84,6 +84,15 @@ app.get('/', (req, res) => {
   res.send('Welcome to Skilio - A Skill Barter Platform API');
 });
 
+// Health check endpoint for Render
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Skilio Backend is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
