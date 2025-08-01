@@ -25,54 +25,15 @@ const Dashboard = () => {
       value: myRequestedSkills.length,
       icon: Users,
       color: 'text-green-600 bg-green-100'
-    },
-    {
-      label: 'Exchanges',
-      value: '12',
-      icon: TrendingUp,
-      color: 'text-purple-600 bg-purple-100'
-    },
-    {
-      label: 'Rating',
-      value: '4.8',
-      icon: Star,
-      color: 'text-yellow-600 bg-yellow-100'
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'exchange',
-      message: 'New skill exchange request from Sarah Chen',
-      time: '2 hours ago',
-      icon: MessageCircle,
-      color: 'text-blue-600'
-    },
-    {
-      id: 2,
-      type: 'review',
-      message: 'You received a 5-star review for React tutoring',
-      time: '1 day ago',
-      icon: Star,
-      color: 'text-yellow-600'
-    },
-    {
-      id: 3,
-      type: 'match',
-      message: 'New potential match found for UI/UX Design',
-      time: '2 days ago',
-      icon: Users,
-      color: 'text-green-600'
-    }
-  ];
+  const recentActivities = [];
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'offered', label: `Skills Offered (${myOfferedSkills.length})` },
-    { id: 'seeking', label: `Skills Seeking (${myRequestedSkills.length})` },
-    { id: 'exchanges', label: 'Exchanges' },
-    { id: 'reviews', label: 'Reviews' }
+    { id: 'seeking', label: `Skills Seeking (${myRequestedSkills.length})` }
   ];
 
   return (
@@ -148,17 +109,25 @@ const Dashboard = () => {
                     Recent Activity
                   </h3>
                   <div className="space-y-4">
-                    {recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-start space-x-3">
-                        <div className={`p-2 rounded-lg bg-gray-100`}>
-                          <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                    {recentActivities.length > 0 ? (
+                      recentActivities.map((activity) => (
+                        <div key={activity.id} className="flex items-start space-x-3">
+                          <div className={`p-2 rounded-lg bg-gray-100`}>
+                            <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900">{activity.message}</p>
+                            <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">{activity.message}</p>
-                          <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 text-sm">No recent activity</p>
+                        <p className="text-gray-400 text-xs mt-1">Your activity will appear here once you start using the platform</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -193,26 +162,16 @@ const Dashboard = () => {
 
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Your Progress
+                    Getting Started
                   </h3>
                   <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">Profile Completion</span>
-                        <span className="font-medium">85%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-primary-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-                      </div>
+                    <div className="text-center py-4">
+                      <BookOpen className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Start by adding your first skill</p>
                     </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">Skill Exchanges</span>
-                        <span className="font-medium">12/15</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: '80%' }}></div>
-                      </div>
+                    <div className="text-center py-4">
+                      <Users className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Connect with other learners</p>
                     </div>
                   </div>
                 </div>
@@ -294,45 +253,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          {activeTab === 'exchanges' && (
-            <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Your Skill Exchanges
-              </h2>
-              <div className="text-center py-12">
-                <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No active exchanges
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Start connecting with other members to begin skill exchanges
-                </p>
-                <Link to="/explore" className="btn-primary">
-                  Find Skill Partners
-                </Link>
-              </div>
-            </div>
-          )}
 
-          {activeTab === 'reviews' && (
-            <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Reviews & Ratings
-              </h2>
-              <div className="text-center py-12">
-                <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No reviews yet
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Complete skill exchanges to start receiving reviews
-                </p>
-                <Link to="/explore" className="btn-primary">
-                  Start Learning
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
