@@ -40,6 +40,35 @@ const skillSchema = new mongoose.Schema({
     default: 'flexible'
   },
   requirements: [String],
+  // New fields for skill seeking
+  currentLevel: {
+    type: String,
+    enum: ['beginner', 'some-experience', 'intermediate', 'advanced'],
+    default: 'beginner'
+  },
+  learningGoals: {
+    type: String,
+    default: ''
+  },
+  preferredStyle: {
+    type: String,
+    enum: ['one-on-one', 'group', 'project-based', 'mentorship', 'flexible'],
+    default: 'one-on-one'
+  },
+  timeCommitment: {
+    type: String,
+    enum: ['flexible', '1-2-hours', '3-5-hours', '5-10-hours', 'intensive'],
+    default: 'flexible'
+  },
+  budget: {
+    type: String,
+    enum: ['free', 'low', 'medium', 'high', 'negotiable'],
+    default: 'free'
+  },
+  mentorRequirements: {
+    type: String,
+    default: ''
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

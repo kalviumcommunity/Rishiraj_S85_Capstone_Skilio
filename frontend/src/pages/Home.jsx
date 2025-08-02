@@ -50,7 +50,27 @@ const Home = () => {
     fetchSkills();
   }, [isAuthenticated]);
 
-  const featuredSkills = skills.slice(0, 3);
+  const featuredSkills = skills
+    .filter(skill => {
+      // Filter out user's own skill requests (seeking skills)
+      if (isAuthenticated && user && skill.createdBy?._id === user.id) {
+        // Only show user's own skills if they are offering (not seeking)
+        return skill.isOffering;
+      }
+      // Show all other skills
+      return true;
+    })
+    .slice(0, 3);
+
+  // Get user's own skill requests for the separate section
+  const userSkillRequests = skills
+    .filter(skill => 
+      isAuthenticated && 
+      user && 
+      skill.createdBy?._id === user.id && 
+      !skill.isOffering
+    )
+    .slice(0, 3);
 
   const features = [
     {
@@ -202,6 +222,38 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Your Skill Requests - Only show if user has skill requests */}
+      {userSkillRequests.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Your Skill Requests
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Skills you're looking to learn from the community
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {userSkillRequests.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                <span>View All Your Skills</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 

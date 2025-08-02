@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: ''
   });
@@ -59,8 +58,7 @@ const Register = () => {
       const userData = {
         name: formData.name,
         email: formData.email,
-        password: formData.password, // Added password field
-        phone: formData.phone
+        password: formData.password
       };
       console.log('Registering with:', userData); // Debug log
       const result = await register(userData);
@@ -126,24 +124,6 @@ const Register = () => {
                 placeholder="Enter your email"
               />
               <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-300 w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <div className="mt-1 relative">
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="w-full py-3 pl-12 pr-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 text-base shadow-sm transition-all bg-[#f6f9ff]"
-                placeholder="Enter your phone number"
-              />
-              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-300 w-5 h-5" />
             </div>
           </div>
           <div>

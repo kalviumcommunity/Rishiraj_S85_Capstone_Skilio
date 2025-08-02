@@ -262,6 +262,8 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     console.log('Creating skill with user:', req.user); // Debug log
+    console.log('Request body:', req.body); // Debug log
+    
     const {
       title,
       description,
@@ -272,8 +274,20 @@ router.post('/', async (req, res) => {
       mediaUrls,
       isOffering,
       availability,
-      requirements
+      requirements,
+      // New fields for skill seeking
+      currentLevel,
+      learningGoals,
+      preferredStyle,
+      timeCommitment,
+      budget,
+      mentorRequirements
     } = req.body;
+
+    // Validate required fields
+    if (!title || !description || !category) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     // Format mediaUrls to match schema
     const formattedMediaUrls = (mediaUrls || []).map(url => {
@@ -283,19 +297,33 @@ router.post('/', async (req, res) => {
       return url;
     });
 
-    const skill = new Skill({
+    const skillData = {
       title,
       description,
       category,
-      level,
+      level: isOffering ? (level || 'beginner') : 'beginner', // Use appropriate level based on offering/seeking
       location,
       tags: tags || [],
       mediaUrls: formattedMediaUrls,
       isOffering,
-      availability,
-      requirements,
+      availability: availability || 'flexible',
+      requirements: requirements || [],
       createdBy: req.user.userId
-    });
+    };
+
+    // Add skill seeking fields if not offering
+    if (!isOffering) {
+      skillData.currentLevel = currentLevel || 'beginner';
+      skillData.learningGoals = learningGoals || '';
+      skillData.preferredStyle = preferredStyle || 'one-on-one';
+      skillData.timeCommitment = timeCommitment || 'flexible';
+      skillData.budget = budget || 'free';
+      skillData.mentorRequirements = mentorRequirements || '';
+    }
+
+    console.log('Skill data to save:', skillData); // Debug log
+
+    const skill = new Skill(skillData);
 
     await skill.save();
 
@@ -316,7 +344,8 @@ router.post('/', async (req, res) => {
     res.status(201).json({ success: true, skill: populatedSkill });
   } catch (error) {
     console.error('Error creating skill:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error details:', error.message); // More detailed error logging
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
