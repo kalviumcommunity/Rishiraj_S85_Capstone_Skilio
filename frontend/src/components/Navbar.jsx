@@ -4,7 +4,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, Menu, X, User, Settings, LogOut, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const navLinks = [
+// Separate navigation links for authenticated and non-authenticated users
+const publicNavLinks = [
+  { name: "Home", href: "/" },
+  { name: "Skills", href: "/explore" },
+];
+
+const authenticatedNavLinks = [
   { name: "Home", href: "/" },
   { name: "Skills", href: "/explore" },
   { name: "Chat", href: "/chat" },
@@ -25,6 +31,9 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+
+  // Use appropriate nav links based on authentication status
+  const navLinks = isAuthenticated ? authenticatedNavLinks : publicNavLinks;
 
   return (
     <nav className="w-full bg-white shadow sticky top-0 z-50">
@@ -50,23 +59,25 @@ const Navbar = () => {
             </Link>
           ))}
           {isAuthenticated && (
-            <Link
-              to="/dashboard"
-              className={`text-gray-700 hover:text-blue-600 font-semibold px-3 py-2 rounded transition-colors duration-200 ${
-                isActive('/dashboard') ? 'text-blue-600' : ''
-              }`}
-            >
-              Dashboard
-            </Link>
+            <>
+              <Link
+                to="/dashboard"
+                className={`text-gray-700 hover:text-blue-600 font-semibold px-3 py-2 rounded transition-colors duration-200 ${
+                  isActive('/dashboard') ? 'text-blue-600' : ''
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/post-skill"
+                className={`text-gray-700 hover:text-blue-600 font-semibold px-3 py-2 rounded transition-colors duration-200 ${
+                  isActive('/post-skill') ? 'text-blue-600' : ''
+                }`}
+              >
+                Post Skill
+              </Link>
+            </>
           )}
-          <Link
-            to="/post-skill"
-            className={`text-gray-700 hover:text-blue-600 font-semibold px-3 py-2 rounded transition-colors duration-200 ${
-              isActive('/post-skill') ? 'text-blue-600' : ''
-            }`}
-          >
-            Post Skill
-          </Link>
           {user ? (
             <div className="relative">
               <button

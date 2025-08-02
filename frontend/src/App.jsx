@@ -16,6 +16,7 @@ import SkillDetail from './pages/SkillDetail';
 import Premium from './pages/Premium';
 import NotFound from './pages/NotFound';
 import AuthCallback from './pages/AuthCallback';
+import Categories from './pages/Categories';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ function App() {
               <Route path="/skill/:id" element={<SkillDetail />} />
               <Route path="/premium" element={<Premium />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/categories/:categoryName" element={<Categories />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster 

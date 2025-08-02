@@ -1,28 +1,97 @@
-import { useState } from 'react';
-import { Plus, Star, Calendar, MessageCircle, TrendingUp, Users, BookOpen, Award } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Star, Calendar, MessageCircle, TrendingUp, Users, BookOpen, Award, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SkillCard from '../components/SkillCard';
-import { mockSkills } from '../data/mockData';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [offeredSkills, setOfferedSkills] = useState([]);
+  const [seekingSkills, setSeekingSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Filter skills for current user
-  const myOfferedSkills = mockSkills.filter(skill => skill.userId === user?.id && skill.isOffering);
-  const myRequestedSkills = mockSkills.filter(skill => skill.userId === user?.id && !skill.isOffering);
+  // Fetch user's skills from backend
+  const fetchUserSkills = async () => {
+    if (!isAuthenticated || !user) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      // Use the correct user ID format
+      const userId = user.id || user._id;
+
+      // Fetch offered skills
+      const offeredResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills/user/${userId}?type=offering`,
+        { headers }
+      );
+      
+      // Fetch seeking skills
+      const seekingResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills/user/${userId}?type=seeking`,
+        { headers }
+      );
+
+      if (offeredResponse.ok && seekingResponse.ok) {
+        const offeredData = await offeredResponse.json();
+        const seekingData = await seekingResponse.json();
+        
+        setOfferedSkills(offeredData.skills || []);
+        setSeekingSkills(seekingData.skills || []);
+      } else {
+        setError('Failed to fetch user skills');
+      }
+    } catch (err) {
+      console.error('Error fetching user skills:', err);
+      setError('Failed to fetch user skills');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Manual refresh function
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserSkills();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchUserSkills();
+  }, [isAuthenticated, user]);
+
+  // Refresh data when component becomes visible (e.g., returning from PostSkill)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated && user) {
+        fetchUserSkills();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAuthenticated, user]);
 
   const stats = [
     {
       label: 'Skills Offered',
-      value: myOfferedSkills.length,
+      value: offeredSkills.length,
       icon: BookOpen,
       color: 'text-blue-600 bg-blue-100'
     },
     {
       label: 'Skills Seeking',
-      value: myRequestedSkills.length,
+      value: seekingSkills.length,
       icon: Users,
       color: 'text-green-600 bg-green-100'
     }
@@ -32,9 +101,50 @@ const Dashboard = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    { id: 'offered', label: `Skills Offered (${myOfferedSkills.length})` },
-    { id: 'seeking', label: `Skills Seeking (${myRequestedSkills.length})` }
+    { id: 'offered', label: `Skills Offered (${offeredSkills.length})` },
+    { id: 'seeking', label: `Skills Seeking (${seekingSkills.length})` }
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Loading your dashboard...
+            </h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-red-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Error loading dashboard
+            </h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={fetchUserSkills}
+              className="btn-primary"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -50,13 +160,23 @@ const Dashboard = () => {
                 Manage your skills and track your learning journey
               </p>
             </div>
-            <Link
-              to="/post-skill"
-              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Post New Skill</span>
-            </Link>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="inline-flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
+              <Link
+                to="/post-skill"
+                className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Post New Skill</span>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -193,10 +313,10 @@ const Dashboard = () => {
                 </Link>
               </div>
               
-              {myOfferedSkills.length > 0 ? (
+              {offeredSkills.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {myOfferedSkills.map((skill) => (
-                    <SkillCard key={skill.id} skill={skill} />
+                  {offeredSkills.map((skill) => (
+                    <SkillCard key={skill._id || skill.id} skill={skill} />
                   ))}
                 </div>
               ) : (
@@ -230,10 +350,10 @@ const Dashboard = () => {
                 </Link>
               </div>
               
-              {myRequestedSkills.length > 0 ? (
+              {seekingSkills.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {myRequestedSkills.map((skill) => (
-                    <SkillCard key={skill.id} skill={skill} />
+                  {seekingSkills.map((skill) => (
+                    <SkillCard key={skill._id || skill.id} skill={skill} />
                   ))}
                 </div>
               ) : (

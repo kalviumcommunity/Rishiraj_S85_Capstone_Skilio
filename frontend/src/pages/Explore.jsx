@@ -21,7 +21,6 @@ const Explore = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams();
       
       // Add filters to query params
@@ -31,12 +30,12 @@ const Explore = () => {
       if (filters.skillType !== 'all') queryParams.append('skillType', filters.skillType);
       if (sortBy) queryParams.append('sortBy', sortBy);
       
+      // Use the public endpoint that doesn't require authentication
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills?${queryParams.toString()}`,
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills/public?${queryParams.toString()}`,
         {
           headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
+            'Content-Type': 'application/json'
           }
         }
       );
