@@ -1,63 +1,46 @@
 import React from 'react';
 import { Users, Star, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
   const navigate = useNavigate();
   return (
-    <div className="bg-blue-600 text-white py-16 px-4">
-      {/* Hero Content */}
-      <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6">
-          Exchange Skills. <span className="text-blue-200">Expand Horizons</span>
-        </h1>
-        <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-          Connect with others to trade your expertise. Learn new skills while teaching what you know best.
-        </p>
-        
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <button 
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
-            onClick={() => navigate('/explore')}
-          >
-            Start Exploring →
-          </button>
-          <button 
-            className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
-            onClick={() => navigate('/register')}
-          >
-            Join the Community
-          </button>
-        </div>
+    <section className="relative py-20 bg-gradient-to-r from-blue-600 to-blue-700 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
       
-      {/* Stats Section */}
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div className="flex flex-col items-center">
-            <Users className="w-12 h-12 mb-4 text-blue-200" />
-            <div className="text-3xl md:text-4xl font-bold mb-2">50+</div>
-            <div className="text-blue-200">Active Users</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <Star className="w-12 h-12 mb-4 text-blue-200" />
-            <div className="text-3xl md:text-4xl font-bold mb-2">200+</div>
-            <div className="text-blue-200">Skills Exchanged</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <TrendingUp className="w-12 h-12 mb-4 text-blue-200" />
-            <div className="text-3xl md:text-4xl font-bold mb-2">95%</div>
-            <div className="text-blue-200">Success Rate</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <Zap className="w-12 h-12 mb-4 text-blue-200" />
-            <div className="text-3xl md:text-4xl font-bold mb-2">6+</div>
-            <div className="text-blue-200">Categories</div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            Exchange Skills,
+            <br />
+            <span className="text-blue-200">Build Connections</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Join a community where knowledge flows freely. Share your expertise, learn from others, and create meaningful connections through skill exchange.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              Get Started
+            </Link>
+            <Link
+              to="/explore"
+              className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
+            >
+              Explore Skills
+            </Link>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

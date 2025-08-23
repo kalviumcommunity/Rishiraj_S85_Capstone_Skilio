@@ -26,23 +26,62 @@ const Chat = () => {
 
   // If recipient is specified, open that specific chat
   useEffect(() => {
-    if (recipientId && conversations.length > 0) {
-      const conversation = conversations.find(conv => conv.userId === recipientId);
-      if (conversation) {
-        setSelectedConversation(conversation);
+    if (recipientId) {
+      console.log('Recipient ID found in URL:', recipientId);
+      
+      // First, try to find an existing conversation
+      const existingConversation = conversations.find(conv => conv.userId === recipientId);
+      
+      if (existingConversation) {
+        console.log('Existing conversation found, opening it');
+        setSelectedConversation(existingConversation);
       } else {
+        console.log('No existing conversation, creating new chat');
         // Create a placeholder conversation for new chats
-        setSelectedConversation({
-          userId: recipientId,
-          name: 'New Chat',
-          avatar: null,
-          lastMessage: '',
-          lastMessageTime: new Date(),
-          unreadCount: 0
-        });
+        // We need to fetch the recipient's user info to create a proper conversation object
+        fetchRecipientInfo(recipientId);
       }
     }
   }, [recipientId, conversations]);
+
+  // Function to fetch recipient info and create a new conversation
+  const fetchRecipientInfo = async (userId) => {
+    try {
+      console.log('Fetching recipient info for new chat:', userId);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/users/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Recipient info received:', data);
+        
+        // Create a new conversation object
+        const newConversation = {
+          userId: userId,
+          name: data.user.name,
+          avatar: data.user.profileImage,
+          lastMessage: '',
+          lastMessageTime: new Date(),
+          unreadCount: 0
+        };
+        
+        console.log('Creating new conversation:', newConversation);
+        setSelectedConversation(newConversation);
+      } else {
+        console.error('Failed to fetch recipient info');
+        toast.error('Failed to load user information');
+      }
+    } catch (error) {
+      console.error('Error fetching recipient info:', error);
+      toast.error('Failed to load user information');
+    }
+  };
 
   const loadConversations = async () => {
     setLoading(true);
@@ -184,7 +223,7 @@ const Chat = () => {
   if (selectedConversation) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto bg-white shadow-sm">
+        <div className="w-full bg-white shadow-sm">
           {/* Chat Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -237,7 +276,7 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">

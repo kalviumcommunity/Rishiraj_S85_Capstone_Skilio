@@ -51,9 +51,6 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 CLOUDINARY_CLOUD_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
-OPENAI_API_KEY=your_openai_key
-STRIPE_SECRET_KEY=your_stripe_secret
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
 FRONTEND_URL=http://localhost:5173
 
 # Frontend

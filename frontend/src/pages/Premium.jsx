@@ -26,8 +26,16 @@ const features = [
 
 const Premium = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-16">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Upgrade to Premium
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Unlock advanced features and take your skill exchange experience to the next level
+          </p>
+        </div>
         <div className="card p-8 text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
             <Star className="w-8 h-8 text-yellow-500" />
