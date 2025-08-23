@@ -22,11 +22,13 @@ import Categories from './pages/Categories';
 const queryClient = new QueryClient();
 
 function App() {
+  console.log('App component rendered, current pathname:', window.location.pathname);
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-white">
+          <div className="w-full h-full bg-white">
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />
@@ -40,6 +42,7 @@ function App() {
               <Route path="/skill/:id" element={<SkillDetail />} />
               <Route path="/premium" element={<Premium />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/callback" element={<AuthCallback />} />
               <Route path="/categories/:categoryName" element={<Categories />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
