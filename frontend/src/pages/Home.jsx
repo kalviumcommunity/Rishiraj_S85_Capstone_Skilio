@@ -211,15 +211,16 @@ const Home = () => {
             )}
           </div>
 
-          <div className="text-center">
-            <Link
-              to="/explore"
-              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              <span>View All Skills</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+        <div className="text-center">
+  <Link
+    to="/explore"
+    className="inline-flex items-center space-x-2 bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+  >
+    <span>View All Skills</span>
+    <ArrowRight className="w-4 h-4" />
+  </Link>
+</div>
+
         </div>
       </section>
 
@@ -289,15 +290,16 @@ const Home = () => {
             )}
           </div>
 
-          <div className="text-center">
-            <Link
-              to="/explore"
-              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              <span>View All Skills</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+        <div className="text-center">
+  <Link
+    to="/explore"
+    className="inline-flex items-center space-x-2 bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+  >
+    <span>View All Skills</span>
+    <ArrowRight className="w-4 h-4" />
+  </Link>
+</div>
+
         </div>
       </section>
 

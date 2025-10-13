@@ -1,362 +1,377 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Paperclip, Smile, MoreVertical } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Users, Star, Zap, Shield, Search, TrendingUp, Plus, BookOpen, MessageCircle } from 'lucide-react';
+import SkillCard from '../components/SkillCard';
+import HeroSection from '../components/HeroSection';
+import { categories } from '../data/mockData';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import io from 'socket.io-client';
 
-const ChatInterface = ({ recipientId }) => {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [socket, setSocket] = useState(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingUser, setTypingUser] = useState(null);
-  const [recipientInfo, setRecipientInfo] = useState(null);
+const Home = () => {
+  const safeCategories = categories || [];
+  const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
+  const [error, setError] = useState(null);
+  const { user, isAuthenticated } = useAuth();
 
-  // Fetch recipient information
   useEffect(() => {
-    const fetchRecipientInfo = async () => {
+    const fetchSkills = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        console.log('Fetching recipient info for ID:', recipientId); // Debug log
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json'
+        };
         
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/users/${recipientId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
+        const endpoint = isAuthenticated ? '/api/skills' : '/api/skills/public';
         
-        console.log('Response status:', response.status); // Debug log
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Recipient data:', data); // Debug log
-          setRecipientInfo(data.user);
-        } else {
-          const errorData = await response.json();
-          console.error('Failed to fetch recipient info:', errorData);
+        if (token && isAuthenticated) {
+          headers.Authorization = `Bearer ${token}`;
         }
-      } catch (error) {
-        console.error('Error fetching recipient info:', error);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${endpoint}?limit=12`,
+          { headers }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setSkills(data.skills);
+        } else {
+          setError(data.error || 'Failed to fetch skills');
+        }
+      } catch (err) {
+        setError('Failed to fetch skills');
       } finally {
         setLoading(false);
       }
     };
+    fetchSkills();
+  }, [isAuthenticated]);
 
-    if (recipientId) {
-      fetchRecipientInfo();
-    }
-  }, [recipientId]);
-
-  useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000', {
-      auth: {
-        token: localStorage.getItem('token')
+  const featuredSkills = skills
+    .filter(skill => {
+      if (isAuthenticated && user && skill.createdBy?._id === user.id) {
+        return skill.isOffering;
       }
-    });
+      return true;
+    })
+    .slice(0, 3);
 
-    newSocket.on('connect', () => {
-      console.log('Connected to chat server');
-    });
+  const userSkillRequests = skills
+    .filter(skill => 
+      isAuthenticated && 
+      user && 
+      skill.createdBy?._id === user.id && 
+      !skill.isOffering
+    )
+    .slice(0, 3);
 
-    // Listen for messages from others
-    newSocket.on('receive_message', (message) => {
-      console.log('Received message:', message);
-      setMessages(prev => [...prev, message]);
-    });
-
-    // Listen for your own sent messages - FIXED: Added this listener
-    newSocket.on('message_sent', (message) => {
-      console.log('Your message sent:', message);
-      setMessages(prev => [...prev, message]);
-    });
-
-    newSocket.on('user_typing', (data) => {
-      if (data.userId === recipientId) {
-        setIsTyping(true);
-        setTypingUser(data.name);
-      }
-    });
-
-    newSocket.on('user_stop_typing', (data) => {
-      if (data.userId === recipientId) {
-        setIsTyping(false);
-        setTypingUser(null);
-      }
-    });
-
-    newSocket.on('messages_read', (data) => {
-      if (data.readerId === recipientId) {
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.sender._id === recipientId ? { ...msg, read: true } : msg
-          )
-        );
-      }
-    });
-
-    // Handle message errors
-    newSocket.on('message_error', (error) => {
-      console.error('Message error:', error);
-      alert('Failed to send message: ' + error.error);
-    });
-
-    setSocket(newSocket);
-
-    // Load existing messages
-    loadMessages();
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [recipientId]);
-
-  // Mark messages as read when chat interface is opened
-  useEffect(() => {
-    if (messages.length > 0 && recipientId) {
-      markMessagesAsRead();
+  const features = [
+    {
+      icon: Shield,
+      title: 'Secure Exchanges',
+      description: 'Safe and verified skill exchanges with built-in protection'
+    },
+    {
+      icon: Search,
+      title: 'Smart Matching',
+      description: 'AI-powered matching system to find your perfect skill partner'
+    },
+    {
+      icon: Users,
+      title: 'Community Driven',
+      description: 'Join a thriving community of learners and teachers'
+    },
+    {
+      icon: Zap,
+      title: 'Real-time Chat',
+      description: 'Connect instantly with skill partners through live messaging'
     }
-  }, [messages, recipientId]);
+  ];
 
-  const markMessagesAsRead = async () => {
-    try {
-      const unreadMessageIds = messages
-        .filter(msg => msg.sender._id === recipientId && msg.recipient._id === user.id && !msg.read)
-        .map(msg => msg._id);
-      
-      if (unreadMessageIds.length > 0) {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/messages/mark-read/bulk`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({
-              messageIds: unreadMessageIds
-            })
-          }
-        );
-        
-        if (response.ok) {
-          // Update local message state to mark as read
-          setMessages(prev => 
-            prev.map(msg => 
-              unreadMessageIds.includes(msg._id) ? { ...msg, read: true } : msg
-            )
-          );
-        }
-      }
-    } catch (error) {
-      console.error('Failed to mark messages as read:', error);
-    }
-  };
-
-  const loadMessages = async () => {
-    try {
-      console.log('Loading messages for conversation...'); // Debug log
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/messages/conversation?userId1=${user.id}&userId2=${recipientId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-      
-      console.log('Messages response status:', response.status); // Debug log
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Messages data:', data); // Debug log
-        
-        // Handle different response formats
-        let messagesArray = [];
-        if (Array.isArray(data)) {
-          messagesArray = data;
-        } else if (data.messages && Array.isArray(data.messages)) {
-          messagesArray = data.messages;
-        } else if (data.success && data.messages && Array.isArray(data.messages)) {
-          messagesArray = data.messages;
-        } else {
-          console.warn('Unexpected messages response format:', data);
-          messagesArray = [];
-        }
-        
-        console.log('Processed messages array:', messagesArray); // Debug log
-        setMessages(messagesArray);
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to load messages:', errorData);
-        setMessages([]); // Set empty array on error
-      }
-    } catch (error) {
-      console.error('Failed to load messages:', error);
-      setMessages([]); // Set empty array on error
-    }
-  };
-
-  const sendMessage = () => {
-    if (!newMessage.trim() || !socket) return;
-
-    const messageData = {
-      recipientId,
-      content: newMessage.trim(),
-      exchangeId: null // Add exchange ID if needed
-    };
-
-    console.log('Sending message:', messageData); // Debug log
-    socket.emit('send_message', messageData);
-    setNewMessage('');
-  };
-
-  const handleTyping = () => {
-    if (!socket) return;
-
-    socket.emit('typing_start', { recipientId });
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set new timeout
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('typing_stop', { recipientId });
-    }, 1000);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    } else {
-      handleTyping();
-    }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading chat...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!recipientInfo) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <p className="text-gray-600">User not found</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col h-[600px]">
-      {/* Removed duplicate chat header - it should be handled by parent Chat.jsx component */}
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {!Array.isArray(messages) || messages.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={message._id || index}
-              className={`flex ${message.sender._id === user.id ? 'justify-end' : 'justify-start'}`}
+  const LoggedInContent = () => (
+    <div className="min-h-screen">
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Welcome back, {user?.name || 'there'}! 👋
+          </h1>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Ready to continue your skill journey? Explore new opportunities or share your expertise.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/post-skill"
+              className="inline-flex items-center space-x-2 bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
-              <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  message.sender._id === user.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-900 shadow-sm'
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
-                <p className={`text-xs mt-1 ${
-                  message.sender._id === user.id ? 'text-blue-100' : 'text-gray-500'
-                }`}>
-                  {formatTime(message.createdAt)}
-                  {message.sender._id === user.id && (
-                    <span className="ml-1">
-                      {message.read ? '✓✓' : '✓'}
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-        
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-900 px-4 py-2 rounded-lg shadow-sm">
-              <p className="text-sm italic">{typingUser || recipientInfo?.name} is typing...</p>
-            </div>
+              <Plus className="w-5 h-5" />
+              <span>Post a Skill</span>
+            </Link>
+            <Link
+              to="/explore"
+              className="inline-flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+              <span>Explore Skills</span>
+            </Link>
           </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Message Input */}
-      <div className="border-t border-gray-200 p-4 bg-white">
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition">
-            <Paperclip className="w-5 h-5 text-gray-500" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full transition">
-            <Smile className="w-5 h-5 text-gray-500" />
-          </button>
-          <div className="flex-1 relative">
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-              rows="1"
-              style={{ minHeight: '40px', maxHeight: '120px' }}
-            />
-          </div>
-          <button
-            onClick={sendMessage}
-            disabled={!newMessage.trim()}
-            className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-full transition"
-          >
-            <Send className="w-5 h-5" />
-          </button>
         </div>
-      </div>
+      </section>
+
+      <section className="py-12 bg-gray-50">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+            Quick Actions
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link
+              to="/dashboard"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    My Dashboard
+                  </h3>
+                  <p className="text-gray-600 text-sm">View your skills and activity</p>
+                </div>
+              </div>
+            </Link>
+            <Link
+              to="/chat"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                    Messages
+                  </h3>
+                  <p className="text-gray-600 text-sm">Check your conversations</p>
+                </div>
+              </div>
+            </Link>
+            <Link
+              to="/profile"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    My Profile
+                  </h3>
+                  <p className="text-gray-600 text-sm">Update your profile</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Featured Skills
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover amazing skills shared by our community members
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {loading ? (
+              <div className="col-span-full text-center py-8">Loading featured skills...</div>
+            ) : error ? (
+              <div className="col-span-full text-center text-red-500 py-8">{error}</div>
+            ) : featuredSkills.length === 0 ? (
+              <div className="col-span-full text-center py-8">No skills found.</div>
+            ) : (
+              featuredSkills.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))
+            )}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/explore"
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              <span>View All Skills</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {userSkillRequests.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Your Skill Requests
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Skills you're looking to learn from the community
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {userSkillRequests.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                <span>View All Your Skills</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
+
+  const LoggedOutContent = () => (
+    <div className="min-h-screen">
+      <HeroSection />
+
+      <section className="py-16 bg-gray-50">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Featured Skills
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover amazing skills shared by our community members
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {loading ? (
+              <div className="col-span-full text-center py-8">Loading featured skills...</div>
+            ) : error ? (
+              <div className="col-span-full text-center text-red-500 py-8">{error}</div>
+            ) : featuredSkills.length === 0 ? (
+              <div className="col-span-full text-center py-8">No skills found.</div>
+            ) : (
+              featuredSkills.map((skill) => (
+                <SkillCard key={skill._id || skill.id} skill={skill} />
+              ))
+            )}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/explore"
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              <span>View All Skills</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Explore Categories
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Find skills across various domains and expertise areas
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {safeCategories.map((category) => (
+              <Link
+                key={category.id}
+                to={`/categories/${category.name.toLowerCase().replace(' ', '-')}`}
+                className="card hover:shadow-lg transition-shadow group"
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-4">{category.icon}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {(category.subcategories || []).length} subcategories
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-gray-50">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose Skilio?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Built for seamless skill exchanges with cutting-edge features
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <feature.icon className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-blue-600">
+        <div className="w-full px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Ready to Start Your Skill Journey?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of learners and teachers in our vibrant community
+          </p>
+          <Link
+            to="/register"
+            className="inline-flex items-center space-x-2 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-50 transition-colors"
+          >
+            <span>Get Started Today</span>
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+
+  return isAuthenticated ? <LoggedInContent /> : <LoggedOutContent />;
 };
 
-export default ChatInterface;
+export default Home;
