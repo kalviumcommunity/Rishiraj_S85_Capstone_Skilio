@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Star, Calendar, MessageCircle, TrendingUp, Users, BookOpen, Award, RefreshCw } from 'lucide-react';
+import { Plus, BookOpen, Users, MessageCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SkillCard from '../components/SkillCard';
@@ -13,53 +13,40 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch user's skills from backend
   const fetchUserSkills = async () => {
     if (!isAuthenticated || !user) return;
-    
     setLoading(true);
     setError(null);
-    
     try {
       const token = localStorage.getItem('token');
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
-
-      // Use the correct user ID format
       const userId = user.id || user._id;
-
-      // Fetch offered skills
       const offeredResponse = await fetch(
         `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills/user/${userId}?type=offering`,
         { headers }
       );
-      
-      // Fetch seeking skills
       const seekingResponse = await fetch(
         `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/skills/user/${userId}?type=seeking`,
         { headers }
       );
-
       if (offeredResponse.ok && seekingResponse.ok) {
         const offeredData = await offeredResponse.json();
         const seekingData = await seekingResponse.json();
-        
         setOfferedSkills(offeredData.skills || []);
         setSeekingSkills(seekingData.skills || []);
       } else {
         setError('Failed to fetch user skills');
       }
     } catch (err) {
-      console.error('Error fetching user skills:', err);
       setError('Failed to fetch user skills');
     } finally {
       setLoading(false);
     }
   };
 
-  // Manual refresh function
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchUserSkills();
@@ -70,14 +57,12 @@ const Dashboard = () => {
     fetchUserSkills();
   }, [isAuthenticated, user]);
 
-  // Refresh data when component becomes visible (e.g., returning from PostSkill)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && isAuthenticated && user) {
         fetchUserSkills();
       }
     };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isAuthenticated, user]);
@@ -136,7 +121,7 @@ const Dashboard = () => {
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={fetchUserSkills}
-              className="btn-primary"
+              className="bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Try Again
             </button>
@@ -149,7 +134,6 @@ const Dashboard = () => {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="mb-4 sm:mb-0">
@@ -171,7 +155,7 @@ const Dashboard = () => {
               </button>
               <Link
                 to="/post-skill"
-                className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center space-x-2 bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 <span>Post New Skill</span>
@@ -180,7 +164,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="card">
@@ -197,7 +180,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
         <div className="mb-8">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 overflow-x-auto">
@@ -207,7 +189,7 @@ const Dashboard = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-primary-500 text-primary-600'
+                      ? 'border-[#0F62FE] text-[#0F62FE]'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -218,11 +200,9 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Tab Content */}
         <div className="space-y-6">
           {activeTab === 'overview' && (
             <div className="grid lg:grid-cols-3 gap-6">
-              {/* Recent Activity */}
               <div className="lg:col-span-2">
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -251,8 +231,6 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Quick Actions */}
               <div className="space-y-6">
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -261,7 +239,7 @@ const Dashboard = () => {
                   <div className="space-y-3">
                     <Link
                       to="/post-skill"
-                      className="block w-full bg-primary-600 hover:bg-primary-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors"
+                      className="block w-full bg-[#0F62FE] hover:bg-[#0c4dd1] text-white text-center py-2 px-4 rounded-lg font-medium transition-colors"
                     >
                       Post New Skill
                     </Link>
@@ -279,7 +257,6 @@ const Dashboard = () => {
                     </Link>
                   </div>
                 </div>
-
                 <div className="card">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Getting Started
@@ -307,12 +284,11 @@ const Dashboard = () => {
                 </h2>
                 <Link
                   to="/post-skill"
-                  className="btn-primary"
+                  className="bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
                 >
                   Add New Skill
                 </Link>
               </div>
-              
               {offeredSkills.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {offeredSkills.map((skill) => (
@@ -328,7 +304,10 @@ const Dashboard = () => {
                   <p className="text-gray-600 mb-4">
                     Start sharing your expertise with the community
                   </p>
-                  <Link to="/post-skill" className="btn-primary">
+                  <Link
+                    to="/post-skill"
+                    className="bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  >
                     Post Your First Skill
                   </Link>
                 </div>
@@ -344,12 +323,11 @@ const Dashboard = () => {
                 </h2>
                 <Link
                   to="/post-skill"
-                  className="btn-primary"
+                  className="bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
                 >
                   Request New Skill
                 </Link>
               </div>
-              
               {seekingSkills.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {seekingSkills.map((skill) => (
@@ -365,15 +343,16 @@ const Dashboard = () => {
                   <p className="text-gray-600 mb-4">
                     Let the community know what you'd like to learn
                   </p>
-                  <Link to="/post-skill" className="btn-primary">
+                  <Link
+                    to="/post-skill"
+                    className="bg-[#0F62FE] hover:bg-[#0c4dd1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  >
                     Request Your First Skill
                   </Link>
                 </div>
               )}
             </div>
           )}
-
-
         </div>
       </div>
     </div>
